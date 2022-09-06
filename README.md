@@ -9,7 +9,6 @@ SG_GITHUB_TOKEN=... sg [FILES...]
 
 ## Installation
 ```bash
-curl -L https://github.com/felixdorn/save-gist/releases/latest/download/sg -o sg
-chmod +x ./sg
-sudo mv ./sg /usr/bin/sg
+curl -L https://github.com/felixdorn/save-gist/releases/latest/download/sg -o /usr/bin/sg
+chmod +x ./usr/bin/sg
 ```
