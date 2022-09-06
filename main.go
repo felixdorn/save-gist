@@ -4,10 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
+	"strings"
+	"time"
+
 	"github.com/google/go-github/v47/github"
 	"golang.org/x/oauth2"
-	"os"
-	"time"
 )
 
 var Client *github.Client
@@ -45,7 +47,7 @@ func run(args []string) error {
 		}
 
 		content := string(bytes)
-		files[github.GistFilename(file)] = github.GistFile{
+		files[github.GistFilename(strings.TrimLeft(file, "/"))] = github.GistFile{
 			Content: &content,
 		}
 	}
