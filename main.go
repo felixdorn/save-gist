@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 	"time"
@@ -16,8 +17,7 @@ var Client *github.Client
 var DirectorySeparator = "-"
 
 func main() {
-	err := run(os.Args[1:])
-	if err != nil {
+	if err := run(os.Args[1:]); err != nil {
 		if usageError, ok := err.(UsageError); ok {
 			fmt.Fprintln(os.Stderr, usageError)
 		} else {
@@ -27,17 +27,13 @@ func main() {
 	}
 }
 
-type UsageError struct {
-	Err error
-}
-
-func (e UsageError) Error() string {
-	return "usage: " + e.Err.Error()
-}
-
 func run(args []string) error {
 	if len(args) == 0 {
 		return UsageError{Err: errors.New("usage: sg [FILES...]")}
+	}
+
+	if args[0] == "--update" {
+		return update()
 	}
 
 	files := map[github.GistFilename]github.GistFile{}
@@ -73,16 +69,63 @@ func init() {
 	if separator := os.Getenv("SG_DIRECTORY_SEPARATOR"); separator != "" {
 		DirectorySeparator = separator
 	}
-	
+
 	githubToken := os.Getenv("SG_GITHUB_TOKEN")
 	if githubToken == "" {
 		fmt.Fprintf(os.Stderr, "error: missing SG_GITHUB_TOKEN\n")
 		os.Exit(1)
 	}
 
-	ts := oauth2.StaticTokenSource(
-		&oauth2.Token{AccessToken: githubToken},
+	Client = github.NewClient(
+		oauth2.NewClient(
+			context.Background(),
+			oauth2.StaticTokenSource(
+				&oauth2.Token{AccessToken: githubToken},
+			),
+		),
 	)
-	tc := oauth2.NewClient(context.Background(), ts)
-	Client = github.NewClient(tc)
+}
+
+func update() error {
+	executablePath, err := os.Executable()
+	if err != nil {
+		return err
+	}
+
+	release, _, err := Client.Repositories.GetLatestRelease(context.Background(), "felixdorn", "save-gist")
+	if err != nil {
+		return err
+	}
+
+	binary, _, err := Client.Repositories.DownloadReleaseAsset(context.Background(), "felixdorn", "save-gist", *release.Assets[0].ID, http.DefaultClient)
+	if err != nil {
+		return err
+	}
+
+	newVersion, err := os.Create(executablePath + ".tmp")
+	if err != nil {
+		return err
+	}
+	defer newVersion.Close()
+
+	if _, err = newVersion.ReadFrom(binary); err != nil {
+		return err
+	}
+
+	err = os.Rename(executablePath+".tmp", executablePath)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Updated to version " + release.GetTagName())
+
+	return nil
+}
+
+type UsageError struct {
+	Err error
+}
+
+func (e UsageError) Error() string {
+	return "usage: " + e.Err.Error()
 }
