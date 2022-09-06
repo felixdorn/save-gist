@@ -1,4 +1,5 @@
 # Save gist
+This tool was built in 30 minutes (check out the livestream, https://www.twitch.tv/videos/1583737595, if you like to see a panicked developer looking at a timer).
 
 ## Usage
 ```
