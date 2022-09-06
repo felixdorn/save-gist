@@ -47,7 +47,7 @@ func run(args []string) error {
 		}
 
 		content := string(bytes)
-		files[github.GistFilename(strings.TrimLeft(file, "/"))] = github.GistFile{
+		files[github.GistFilename(strings.Replace(strings.TrimLeft(file, "/"), "/", "-", -1))] = github.GistFile{
 			Content: &content,
 		}
 	}
