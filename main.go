@@ -4,17 +4,18 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"golang.org/x/oauth2"
 	"net/http"
 	"os"
 	"strings"
 	"time"
 
 	"github.com/google/go-github/v47/github"
-	"golang.org/x/oauth2"
 )
 
 var Client *github.Client
 var DirectorySeparator = "-"
+var CanBeAuthenticated = false
 
 func main() {
 	if err := run(os.Args[1:]); err != nil {
@@ -34,6 +35,10 @@ func run(args []string) error {
 
 	if args[0] == "--update" {
 		return update()
+	}
+
+	if !CanBeAuthenticated {
+		return errors.New("missing SG_GITHUB_TOKEN")
 	}
 
 	files := map[github.GistFilename]github.GistFile{}
@@ -71,19 +76,19 @@ func init() {
 	}
 
 	githubToken := os.Getenv("SG_GITHUB_TOKEN")
-	if githubToken == "" {
-		fmt.Fprintf(os.Stderr, "error: missing SG_GITHUB_TOKEN\n")
-		os.Exit(1)
+	CanBeAuthenticated = githubToken != ""
+	if CanBeAuthenticated {
+		Client = github.NewClient(
+			oauth2.NewClient(
+				context.Background(),
+				oauth2.StaticTokenSource(
+					&oauth2.Token{AccessToken: githubToken},
+				),
+			),
+		)
+		return
 	}
 
-	Client = github.NewClient(
-		oauth2.NewClient(
-			context.Background(),
-			oauth2.StaticTokenSource(
-				&oauth2.Token{AccessToken: githubToken},
-			),
-		),
-	)
 }
 
 func update() error {
