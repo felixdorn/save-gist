@@ -13,6 +13,7 @@ import (
 )
 
 var Client *github.Client
+var DirectorySeparator = "-"
 
 func main() {
 	err := run(os.Args[1:])
@@ -47,7 +48,7 @@ func run(args []string) error {
 		}
 
 		content := string(bytes)
-		files[github.GistFilename(strings.Replace(strings.TrimLeft(file, "/"), "/", "-", -1))] = github.GistFile{
+		files[github.GistFilename(strings.Replace(strings.TrimLeft(file, "/"), "/", DirectorySeparator, -1))] = github.GistFile{
 			Content: &content,
 		}
 	}
@@ -69,6 +70,10 @@ func run(args []string) error {
 }
 
 func init() {
+	if separator := os.Getenv("SG_DIRECTORY_SEPARATOR"); separator != "" {
+		DirectorySeparator = separator
+	}
+	
 	githubToken := os.Getenv("SG_GITHUB_TOKEN")
 	if githubToken == "" {
 		fmt.Fprintf(os.Stderr, "error: missing SG_GITHUB_TOKEN\n")

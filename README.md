@@ -12,3 +12,7 @@ SG_GITHUB_TOKEN=... sg [FILES...]
 curl -L https://github.com/felixdorn/save-gist/releases/latest/download/sg -o /usr/bin/sg
 chmod +x ./usr/bin/sg
 ```
+
+## Configuration
+
+* `SG_DIRECTORY_SEPARATOR=-`,  defaults to a dash `-`, I like to use a `:` instead. Note, slashes are not allowed by GitHub.
