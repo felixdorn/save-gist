@@ -2,10 +2,9 @@
 
 ## Usage
 ```
-sg [FILES...]
+SG_GITHUB_TOKEN=... sg [FILES...]
 ```
-
-with a `SG_GITHUB_TOKEN` set to a personal access token with the `gist` scope.
+> The access token needs the `gist` scope, it's not recommended to run the command this way. Instead, set the environment variable and then call `sg`.  
 
 ## Installation
 ```bash
